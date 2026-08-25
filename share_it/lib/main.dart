@@ -47,6 +47,7 @@ class _MainLayoutState extends State<MainLayout> {
 
   final List<Widget> _pages = const [
     RecievePage(),
+    SendPage(),
   ]; //SendPage(), SettingsPage()];
 
   @override
@@ -76,7 +77,7 @@ class _MainLayoutState extends State<MainLayout> {
                     label: Text('Send'),
                   ),
                   NavigationRailDestination(
-                    icon: Icon(Icons.send_rounded),
+                    icon: Icon(Icons.settings_rounded),
                     label: Text('Options'),
                   ),
                 ],
@@ -219,6 +220,163 @@ class _RecievePageState extends State<RecievePage> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class SendPage extends StatefulWidget {
+  const SendPage({super.key});
+
+  @override
+  State<SendPage> createState() => _SendPageState();
+}
+
+class _SendPageState extends State<SendPage> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Send'), centerTitle: false),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: [
+                _buildActionCard(
+                  context,
+                  icon: Icons.insert_drive_file_rounded,
+                  label: 'File',
+                ),
+                _buildActionCard(
+                  context,
+                  icon: Icons.folder_rounded,
+                  label: 'Folder',
+                ),
+                _buildActionCard(
+                  context,
+                  icon: Icons.text_snippet_rounded,
+                  label: 'Text',
+                ),
+                _buildActionCard(
+                  context,
+                  icon: Icons.image_rounded,
+                  label: 'Image',
+                ),
+                _buildActionCard(
+                  context,
+                  icon: Icons.paste_rounded,
+                  label: 'Paste',
+                ),
+              ],
+            ),
+            const SizedBox(height: 32),
+            Text(
+              'Close devices',
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            Expanded(
+              child: ListView(
+                children: [
+                  _buildDeviceCard(
+                    context,
+                    name: 'A',
+                    ip: '1.1.1.1',
+                    icon: Icons.laptop_mac_rounded,
+                  ),
+                  _buildDeviceCard(
+                    context,
+                    name: 'B',
+                    ip: '2.2.2.2',
+                    icon: Icons.laptop_chromebook_rounded,
+                  ),
+                  _buildDeviceCard(
+                    context,
+                    name: 'C',
+                    ip: '3.3.3.3',
+                    icon: Icons.smartphone_rounded,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionCard(
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+  }) {
+    return Card(
+      elevation: 0,
+      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: InkWell(
+        onTap: () {},
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsetsGeometry.symmetric(
+            horizontal: 24,
+            vertical: 16,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                icon,
+                size: 32,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                label,
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDeviceCard(
+    BuildContext context, {
+    required String name,
+    required String ip,
+    required IconData icon,
+  }) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      elevation: 1,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        leading: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.primaryContainer,
+            shape: BoxShape.circle,
+          ),
+          child: Icon(
+            icon,
+            color: Theme.of(context).colorScheme.onPrimaryContainer,
+          ),
+        ),
+        title: Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
+        subtitle: Text(ip),
+        trailing: const Icon(Icons.chevron_right_rounded),
+        onTap: () {},
       ),
     );
   }
