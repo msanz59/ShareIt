@@ -114,8 +114,27 @@ class _MainLayoutState extends State<MainLayout> {
   }
 }
 
-class RecievePage extends StatelessWidget {
+class RecievePage extends StatefulWidget {
   const RecievePage({super.key});
+
+  @override
+  State<RecievePage> createState() => _RecievePageState();
+}
+
+class _RecievePageState extends State<RecievePage> {
+  bool _isPulsing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        setState(() {
+          _isPulsing = true;
+        });
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -126,16 +145,45 @@ class RecievePage extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Theme.of(context).colorScheme.primaryContainer,
-            ),
-            child: Icon(
-              Icons.waving_hand,
-              size: 80,
-              color: Theme.of(context).colorScheme.onPrimaryContainer,
+          SizedBox(
+            height: 160,
+            width: 160,
+            child: Center(
+              child: AnimatedScale(
+                scale: _isPulsing ? 1.08 : 0.94,
+                duration: const Duration(milliseconds: 5000),
+                curve: Curves.easeInOut,
+                onEnd: () {
+                  if (mounted) {
+                    setState(() {
+                      _isPulsing = !_isPulsing;
+                    });
+                  }
+                },
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 1500),
+                  curve: Curves.easeInOut,
+                  padding: const EdgeInsets.all(28),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Theme.of(context).colorScheme.primaryContainer,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Theme.of(context).colorScheme.primary.withValues(
+                          alpha: _isPulsing ? 0.35 : 0.08,
+                        ),
+                        blurRadius: _isPulsing ? 28 : 10,
+                        spreadRadius: _isPulsing ? 6 : 1,
+                      ),
+                    ],
+                  ),
+                  child: Icon(
+                    Icons.waving_hand,
+                    size: 80,
+                    color: Theme.of(context).colorScheme.onPrimaryContainer,
+                  ),
+                ),
+              ),
             ),
           ),
           const SizedBox(height: 24),
