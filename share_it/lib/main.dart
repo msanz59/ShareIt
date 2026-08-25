@@ -11,7 +11,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Share IT',
       theme: ThemeData(
         colorScheme: .fromSeed(
           seedColor: Colors.teal,
@@ -28,6 +28,79 @@ class MyApp extends StatelessWidget {
       ),
       themeMode: ThemeMode.system,
       home: const MyHomePage(title: 'Flutter Demo Home Page'),
+    );
+  }
+}
+
+class MainLayout extends StatefulWidget {
+  const MainLayout({super.key});
+
+  @override
+  State<MainLayout> createState() => _MainLayoutState();
+}
+
+class _MainLayoutState extends State<MainLayout> {
+  int _index = 0;
+
+  final List<Widget> _pages = const [RecievePage(), SendPage(), SettingsPage()];
+
+  @override
+  Widget build(BuildContext context) {
+    final isDesktop = MediaQuery.of(context).size.width > 600;
+
+    return Scaffold(
+      body: SafeArea(
+        child: Row(
+          children: [
+            if (isDesktop)
+              NavigationRail(
+                selectedIndex: _index,
+                onDestinationSelected: (int index) {
+                  setState(() {
+                    _index = index;
+                  });
+                },
+              labelType: NavigationRailLabelType.all,
+              destinations: const [
+                NavigationRailDestination(
+                  icon: Icon(Icons.download_rounded),
+                  label: Text('Recieve'),
+                ),
+                NavigationRailDestination(icon: Icon(Icons.send_rounded), label: Text('Send')),
+                NavigationRailDestination(icon: Icon(Icons.send_rounded), label: Text('Options'))
+              ],
+              )
+            if (isDesktop) const VerticalDivider(thickness: 1, width: 1),
+            Expanded(
+              child: _pages[_index],
+            )
+          ],
+        ),
+      ),
+      bottomNavigationBar: isDesktop
+        ? null // If desktop it takes null
+        : NavigationBar(
+            selectedIndex: _index,
+              onDestinationSelected: (int index) {
+                setState(() {
+                  _index = index;
+                });
+              },
+              destinations: const [
+                NavigationDestination(
+                  icon: Icon(Icons.download_rounded),
+                  label: 'Recibir',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.send_rounded),
+                  label: 'Enviar',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.settings_rounded),
+                  label: 'Ajustes',
+                ),
+              ],
+        )
     );
   }
 }
