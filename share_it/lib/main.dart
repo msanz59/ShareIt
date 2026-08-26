@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:share_it/app_settings.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -48,6 +49,7 @@ class _MainLayoutState extends State<MainLayout> {
   final List<Widget> _pages = const [
     RecievePage(),
     SendPage(),
+    SettingsPage(),
   ]; //SendPage(), SettingsPage()];
 
   @override
@@ -377,6 +379,80 @@ class _SendPageState extends State<SendPage> {
         subtitle: Text(ip),
         trailing: const Icon(Icons.chevron_right_rounded),
         onTap: () {},
+      ),
+    );
+  }
+}
+
+class SettingsPage extends StatefulWidget {
+  const SettingsPage({super.key});
+
+  @override
+  State<SettingsPage> createState() => _SettingsPage();
+}
+
+class _SettingsPage extends State<SettingsPage> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Settings'), centerTitle: false),
+      body: ListView(
+        children: [
+          _buildSectionHeader(context, 'General'),
+          ListTile(
+            leading: const Icon(Icons.person_rounded),
+            title: const Text('Device Name'),
+            subtitle: const Text('PLACEHOLDER'),
+            onTap: () {},
+          ),
+          ListTile(
+            leading: const Icon(Icons.color_lens_rounded),
+            title: const Text('Theme'),
+            subtitle: const Text('System'),
+            onTap: () {},
+          ),
+          const Divider(),
+          _buildSectionHeader(context, 'Network'),
+          ListTile(
+            leading: const Icon(Icons.router_rounded),
+            title: const Text('Port'),
+            subtitle: Text(AppSettings.port.value.toString()),
+            onTap: () {},
+          ),
+          ListTile(
+            leading: const Icon(Icons.security_rounded),
+            title: const Text('Encript'),
+            trailing: Switch(
+              value: AppSettings.isEncripted.value,
+              onChanged: (bool val) {
+                setState(() {
+                  AppSettings.isEncripted.value = val;
+                });
+              },
+            ),
+          ),
+          const Divider(),
+          _buildSectionHeader(context, 'About'),
+          ListTile(
+            leading: const Icon(Icons.info_outline_rounded),
+            title: const Text('Version'),
+            subtitle: const Text('1.0.0'),
+            onTap: () {},
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(BuildContext context, String title) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+      child: Text(
+        title,
+        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+          color: Theme.of(context).colorScheme.primary,
+          fontWeight: FontWeight.bold,
+        ),
       ),
     );
   }
