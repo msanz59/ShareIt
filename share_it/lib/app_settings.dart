@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -16,5 +18,9 @@ class AppSettings {
 
   static final ValueNotifier<String> deviceIP = ValueNotifier(
     dotenv.env['USER_IP'] ?? '0.0.0.0',
+  );
+
+  static final ValueNotifier<String> savePath = ValueNotifier(
+    dotenv.env['SAVE_PATH'] ?? Directory.systemTemp.path,
   );
 }
