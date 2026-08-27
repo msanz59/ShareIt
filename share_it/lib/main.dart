@@ -11,27 +11,44 @@ void main() async {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
+  ThemeMode _getTheme(String theme) {
+    switch (theme.toLowerCase()) {
+      case 'light':
+        return ThemeMode.light;
+      case 'dark':
+        return ThemeMode.dark;
+      case 'system':
+      default:
+        return ThemeMode.system;
+    }
+  }
+
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Share IT',
-      theme: ThemeData(
-        colorScheme: .fromSeed(
-          seedColor: Colors.teal,
-          brightness: Brightness.light,
-        ),
-        useMaterial3: true,
-      ),
-      darkTheme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.teal,
-          brightness: Brightness.dark,
-        ),
-        useMaterial3: true,
-      ),
-      themeMode: ThemeMode.system,
-      home: const MainLayout(),
+    return ValueListenableBuilder<String>(
+      valueListenable: AppSettings.theme,
+      builder: (context, currentTheme, child) {
+        return MaterialApp(
+          title: 'Share IT',
+          theme: ThemeData(
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: Colors.teal,
+              brightness: Brightness.light,
+            ),
+            useMaterial3: true,
+          ),
+          darkTheme: ThemeData(
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: Colors.teal,
+              brightness: Brightness.dark,
+            ),
+            useMaterial3: true,
+          ),
+          themeMode: _getTheme(currentTheme),
+          home: const MainLayout(),
+        );
+      },
     );
   }
 }
@@ -46,11 +63,7 @@ class MainLayout extends StatefulWidget {
 class _MainLayoutState extends State<MainLayout> {
   int _index = 0;
 
-  final List<Widget> _pages = const [
-    RecievePage(),
-    SendPage(),
-    SettingsPage(),
-  ]; //SendPage(), SettingsPage()];
+  final List<Widget> _pages = const [RecievePage(), SendPage(), SettingsPage()];
 
   @override
   Widget build(BuildContext context) {
@@ -141,8 +154,8 @@ class _RecievePageState extends State<RecievePage> {
 
   @override
   Widget build(BuildContext context) {
-    final String userIP = dotenv.env['USER_IP'] ?? '0.0.0.0';
-    final String userID = dotenv.env['USER_ID'] ?? 'Sour Apple';
+    final String userIP = AppSettings.deviceIP.value;
+    final String userID = AppSettings.deviceName.value;
 
     return Center(
       child: Column(
@@ -402,14 +415,41 @@ class _SettingsPage extends State<SettingsPage> {
           ListTile(
             leading: const Icon(Icons.person_rounded),
             title: const Text('Device Name'),
-            subtitle: const Text('PLACEHOLDER'),
-            onTap: () {},
+            subtitle: Text(AppSettings.deviceName.value),
+            onTap: () {
+              _showEditDialog(
+                context: context,
+                title: 'Change name',
+                initialValue: AppSettings.deviceName.value,
+                keyboardType: TextInputType.text,
+                onSave: (newValue) {
+                  if (newValue != '') {
+                    setState(() {
+                      AppSettings.deviceName.value = newValue;
+                    });
+                  }
+                },
+              );
+            },
           ),
           ListTile(
             leading: const Icon(Icons.color_lens_rounded),
             title: const Text('Theme'),
-            subtitle: const Text('System'),
-            onTap: () {},
+            subtitle: Text(AppSettings.theme.value),
+            onTap: () {
+              _showOptionsDialog(
+                context: context,
+                title: 'Select Theme',
+                options: ['System', 'Light', 'Dark'],
+                selectedOption: AppSettings.theme.value,
+                onSelect: (selectedTheme) {
+                  setState(() {
+                    AppSettings.theme.value = selectedTheme;
+                    if (selectedTheme == 'Light') {}
+                  });
+                },
+              );
+            },
           ),
           const Divider(),
           _buildSectionHeader(context, 'Network'),
@@ -417,7 +457,22 @@ class _SettingsPage extends State<SettingsPage> {
             leading: const Icon(Icons.router_rounded),
             title: const Text('Port'),
             subtitle: Text(AppSettings.port.value.toString()),
-            onTap: () {},
+            onTap: () {
+              _showEditDialog(
+                context: context,
+                title: 'Change Port',
+                initialValue: AppSettings.port.value.toString(),
+                keyboardType: TextInputType.number,
+                onSave: (newValue) {
+                  final newPort = int.tryParse(newValue);
+                  if (newPort != null) {
+                    setState(() {
+                      AppSettings.port.value = newPort;
+                    });
+                  }
+                },
+              );
+            },
           ),
           ListTile(
             leading: const Icon(Icons.security_rounded),
@@ -454,6 +509,96 @@ class _SettingsPage extends State<SettingsPage> {
           fontWeight: FontWeight.bold,
         ),
       ),
+    );
+  }
+
+  Future<void> _showOptionsDialog({
+    required BuildContext context,
+    required String title,
+    required List<String> options,
+    required String selectedOption,
+    required Function(String) onSelect,
+  }) async {
+    return showDialog(
+      context: context,
+      builder: (context) {
+        return SimpleDialog(
+          title: Text(title),
+          children: options.map((option) {
+            final isSelected = option == selectedOption;
+            return SimpleDialogOption(
+              onPressed: () {
+                onSelect(option);
+                Navigator.pop(context);
+              },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Row(
+                  children: [
+                    Icon(
+                      isSelected
+                          ? Icons.radio_button_checked
+                          : Icons.radio_button_off,
+                      color: isSelected
+                          ? Theme.of(context).colorScheme.primary
+                          : null,
+                    ),
+                    const SizedBox(width: 16),
+                    Text(
+                      option,
+                      style: TextStyle(
+                        fontWeight: isSelected
+                            ? FontWeight.bold
+                            : FontWeight.normal,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }).toList(),
+        );
+      },
+    );
+  }
+
+  Future<void> _showEditDialog({
+    required BuildContext context,
+    required String title,
+    required String initialValue,
+    TextInputType keyboardType = TextInputType.text,
+    required Function(String) onSave,
+  }) async {
+    final controller = TextEditingController(text: initialValue);
+
+    return showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(title),
+          content: TextField(
+            controller: controller,
+            autofocus: true,
+            keyboardType: keyboardType,
+            decoration: const InputDecoration(border: OutlineInputBorder()),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () {
+                if (controller.text.trim().isNotEmpty) {
+                  onSave(controller.text.trim());
+                  Navigator.pop(context);
+                }
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
     );
   }
 }
