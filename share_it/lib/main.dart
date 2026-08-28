@@ -437,20 +437,22 @@ class _SettingsPage extends State<SettingsPage> {
             title: const Text('Save Path'),
             subtitle: Text(AppSettings.savePath.value),
             onTap: () {
-              _showEditDialog(
-                context: context,
-                title: 'Change path',
-                initialValue: AppSettings.savePath.value,
+              if (AppSettings.savePath.value != 'Downloads (Browser)') {
+                _showEditDialog(
+                  context: context,
+                  title: 'Change path',
+                  initialValue: AppSettings.savePath.value,
 
-                keyboardType: TextInputType.text,
-                onSave: (newValue) {
-                  if (newValue != '') {
-                    setState(() {
-                      AppSettings.savePath.value = newValue;
-                    });
-                  }
-                },
-              );
+                  keyboardType: TextInputType.text,
+                  onSave: (newValue) {
+                    if (newValue != '') {
+                      setState(() {
+                        AppSettings.savePath.value = newValue;
+                      });
+                    }
+                  },
+                );
+              }
             },
           ),
           ListTile(
