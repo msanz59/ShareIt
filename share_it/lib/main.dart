@@ -433,6 +433,27 @@ class _SettingsPage extends State<SettingsPage> {
             },
           ),
           ListTile(
+            leading: const Icon(Icons.folder_rounded),
+            title: const Text('Save Path'),
+            subtitle: Text(AppSettings.savePath.value),
+            onTap: () {
+              _showEditDialog(
+                context: context,
+                title: 'Change path',
+                initialValue: AppSettings.savePath.value,
+
+                keyboardType: TextInputType.text,
+                onSave: (newValue) {
+                  if (newValue != '') {
+                    setState(() {
+                      AppSettings.savePath.value = newValue;
+                    });
+                  }
+                },
+              );
+            },
+          ),
+          ListTile(
             leading: const Icon(Icons.color_lens_rounded),
             title: const Text('Theme'),
             subtitle: Text(AppSettings.theme.value),
