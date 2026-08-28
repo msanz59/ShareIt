@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:share_it/app_settings.dart';
+import 'dart:io';
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/services.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -248,6 +251,72 @@ class SendPage extends StatefulWidget {
 }
 
 class _SendPageState extends State<SendPage> {
+  final List<File> _selectedFiles = [];
+
+  Future<void> _pickFiles({
+    FileType type = FileType.any,
+    List<String>? allowedExtensions,
+    bool allowMultiple = true,
+  }) async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: type,
+      allowedExtensions: allowedExtensions,
+      allowMultiple: allowMultiple,
+    );
+
+    if (result != null && result.files.isNotEmpty) {
+      setState(() {
+        for (var file in result.files) {
+          if (file.path != null) {
+            _selectedFiles.add(File(file.path!));
+          }
+        }
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('${result.files.length} file(s) selected')),
+      );
+    }
+  }
+
+  Future<void> _pickFolder() async {
+    String? selectedDirectory = await FilePicker.platform.getDirectoryPath();
+    if (selectedDirectory != null) {
+      final dir = Directory(selectedDirectory);
+      debugPrint('Carpeta seleccionada: ${dir.path}');
+    }
+  }
+
+  Future<void> _pasteFromClipboard() async {
+    final clipboardData = await Clipboard.getData(Clipboard.kTextPlain);
+    final text = clipboardData?.text;
+    if (text != null && text.trim().isNotEmpty) {
+      final tempDir = Directory.systemTemp;
+      final file = File(
+        '${tempDir.path}/pasted_${DateTime.now().millisecondsSinceEpoch}.txt',
+      );
+      await file.writeAsString(text);
+      setState(() {
+        _selectedFiles.add(file);
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Pasted text as file: ${file.path.split(Platform.pathSeparator).last}',
+            ),
+          ),
+        );
+      }
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Clipboard is empty or has no text')),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -265,26 +334,34 @@ class _SendPageState extends State<SendPage> {
                   context,
                   icon: Icons.insert_drive_file_rounded,
                   label: 'File',
+                  onTap: () => _pickFiles(type: FileType.any),
                 ),
                 _buildActionCard(
                   context,
                   icon: Icons.folder_rounded,
                   label: 'Folder',
+                  onTap: _pickFolder,
                 ),
                 _buildActionCard(
                   context,
                   icon: Icons.text_snippet_rounded,
                   label: 'Text',
+                  onTap: () => _pickFiles(
+                    type: FileType.custom,
+                    allowedExtensions: ['txt', 'pdf', 'md', 'doc', 'docx'],
+                  ),
                 ),
                 _buildActionCard(
                   context,
                   icon: Icons.image_rounded,
                   label: 'Image',
+                  onTap: () => _pickFiles(type: FileType.image),
                 ),
                 _buildActionCard(
                   context,
                   icon: Icons.paste_rounded,
                   label: 'Paste',
+                  onTap: _pasteFromClipboard,
                 ),
               ],
             ),
@@ -330,13 +407,14 @@ class _SendPageState extends State<SendPage> {
     BuildContext context, {
     required IconData icon,
     required String label,
+    required VoidCallback onTap,
   }) {
     return Card(
       elevation: 0,
       color: Theme.of(context).colorScheme.surfaceContainerHighest,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: InkWell(
-        onTap: () {},
+        onTap: onTap,
         borderRadius: BorderRadius.circular(16),
         child: Padding(
           padding: const EdgeInsetsGeometry.symmetric(
