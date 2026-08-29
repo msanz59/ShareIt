@@ -363,6 +363,19 @@ class _SendPageState extends State<SendPage> {
                   label: 'Paste',
                   onTap: _pasteFromClipboard,
                 ),
+                _buildActionCard(
+                  context,
+                  icon: Icons.delete_rounded,
+                  label: 'Remove',
+                  onTap: () {
+                    setState(() {
+                      _selectedFiles.clear();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Removed selected files')),
+                      );
+                    });
+                  },
+                ),
               ],
             ),
             const SizedBox(height: 32),
@@ -396,6 +409,13 @@ class _SendPageState extends State<SendPage> {
                   ),
                 ],
               ),
+            ),
+            const SizedBox(height: 32),
+            Text(
+              '${_selectedFiles.length} Files Selected',
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
           ],
         ),
